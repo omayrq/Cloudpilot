@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudPilot — AWS Cost & Deployment Copilot</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        awsDark: '#0f172a',
+                        awsCard: '#1e293b',
+                        awsOrange: '#ff9900',
+                        awsBlue: '#0073bb',
+                        awsGreen: '#10b981',
+                        awsRed: '#ef4444'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-awsDark text-gray-100 min-h-screen font-sans antialiased">
+    <!-- Header Navigation -->
+    <header class="border-b border-gray-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-orange-500/20">
+                    <i class="fa-solid fa-plane-departure"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-none tracking-tight">CloudPilot</h1>
+                    <p class="text-xs text-orange-400 font-mono mt-0.5">AWS Cost & Deployment Copilot</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span>
+                    AWS Live API Connected (us-east-1)
+                </span>
+                <a href="https://github.com/omayrq/Cloudpilot.git" target="_blank" class="text-gray-400 hover:text-white transition">
+                    <i class="fa-brands fa-github text-xl"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Left Controls / Prompts Column -->
+        <div class="lg:col-span-4 space-y-6">
+            <!-- Mode Selector Card -->
+            <div class="bg-awsCard rounded-2xl p-6 border border-gray-800 shadow-xl">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">Select Capability Mode</h2>
+                <div class="space-y-2" id="modeSelector">
+                    <button onclick="setMode('architecture')" id="btn-architecture" class="w-full text-left p-3.5 rounded-xl border transition flex items-center justify-between bg-orange-500/10 border-orange-500/40 text-orange-300">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-sitemap text-orange-400"></i>
+                            <div>
+                                <div class="font-semibold text-sm">Architecture & Cost Planner</div>
+                                <div class="text-xs text-gray-400">Services, pricing & cost trade-offs</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                    
+                    <button onclick="setMode('troubleshooter')" id="btn-troubleshooter" class="w-full text-left p-3.5 rounded-xl border border-gray-800 text-gray-400 hover:border-gray-700 hover:bg-slate-800/50 transition flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-bug text-sky-400"></i>
+                            <div>
+                                <div class="font-semibold text-sm">Pipeline Troubleshooter</div>
+                                <div class="text-xs text-gray-400">CodeBuild & pipeline log diagnostics</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+
+                    <button onclick="setMode('change_review')" id="btn-change_review" class="w-full text-left p-3.5 rounded-xl border border-gray-800 text-gray-400 hover:border-gray-700 hover:bg-slate-800/50 transition flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                            <div>
+                                <div class="font-semibold text-sm">Change Review & Safety</div>
+                                <div class="text-xs text-gray-400">Human-in-the-loop risk evaluation</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Start Prompts -->
+            <div class="bg-awsCard rounded-2xl p-6 border border-gray-800 shadow-xl">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Quick Prompts</h2>
+                <div class="space-y-2">
+                    <button onclick="applyPrompt('Build a serverless REST API with DynamoDB and S3 for low cost', 'architecture')" class="w-full text-left p-3 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-xs text-gray-300 border border-gray-800 hover:border-gray-700 transition">
+                        ⚡ "Build a serverless REST API with DynamoDB"
+                    </button>
+                    <button onclick="applyPrompt('Error 429 Too Many Requests pulling Docker image from Docker Hub in buildspec.yml', 'troubleshooter')" class="w-full text-left p-3 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-xs text-gray-300 border border-gray-800 hover:border-gray-700 transition">
+                        🔍 "Fix Docker Hub 429 Rate Limit error"
+                    </button>
+                    <button onclick="applyPrompt('Resize EC2 production instance from t3.micro to t3.2xlarge', 'change_review')" class="w-full text-left p-3 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-xs text-gray-300 border border-gray-800 hover:border-gray-700 transition">
+                        🛡️ "Resize EC2 instance to t3.2xlarge"
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Main Workspace / Chat Output Column -->
+        <div class="lg:col-span-8 flex flex-col space-y-6">
+            <!-- Query Input Card -->
+            <div class="bg-awsCard rounded-2xl p-6 border border-gray-800 shadow-xl">
+                <label for="userPrompt" class="block text-sm font-semibold text-gray-300 mb-2">Describe your request or paste deployment log</label>
+                <textarea id="userPrompt" rows="4" class="w-full bg-slate-900 border border-gray-800 rounded-xl p-4 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition font-mono" placeholder="Enter application requirements or paste build logs here..."></textarea>
+                <div class="mt-4 flex justify-between items-center">
+                    <div class="text-xs text-gray-400">
+                        Target API: <code class="text-orange-400 bg-slate-900 px-2 py-0.5 rounded">execute-api.us-east-1.amazonaws.com</code>
+                    </div>
+                    <button onclick="submitQuery()" id="btnSubmit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-semibold text-sm shadow-lg shadow-orange-500/20 transition flex items-center space-x-2">
+                        <span>Send Request</span>
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingState" class="hidden bg-awsCard rounded-2xl p-8 border border-gray-800 text-center">
+                <i class="fa-solid fa-circle-notch fa-spin text-3xl text-orange-400 mb-3"></i>
+                <p class="text-sm text-gray-300">Communicating with AWS Bedrock Converse API...</p>
+            </div>
+
+            <!-- Output Display Card -->
+            <div id="outputCard" class="hidden bg-awsCard rounded-2xl p-6 border border-gray-800 shadow-xl space-y-6">
+                <!-- Summary Header -->
+                <div id="outputHeader" class="border-b border-gray-800 pb-4">
+                    <span id="badgeMode" class="px-2.5 py-1 rounded-md text-xs font-semibold uppercase bg-orange-500/20 text-orange-400 border border-orange-500/30">Architecture</span>
+                    <h3 id="outputSummary" class="text-lg font-bold mt-2 text-white"></h3>
+                </div>
+
+                <!-- Recommendations -->
+                <div id="sectionRecommendations" class="hidden">
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-orange-400 mb-2 flex items-center">
+                        <i class="fa-solid fa-lightbulb mr-2"></i> Recommendations
+                    </h4>
+                    <ul id="listRecommendations" class="space-y-2 text-sm text-gray-300"></ul>
+                </div>
+
+                <!-- Cost Drivers -->
+                <div id="sectionCostDrivers" class="hidden">
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-2 flex items-center">
+                        <i class="fa-solid fa-dollar-sign mr-2"></i> Financial & Cost Breakdown
+                    </h4>
+                    <ul id="listCostDrivers" class="space-y-2 text-sm text-gray-300"></ul>
+                </div>
+
+                <!-- Risks -->
+                <div id="sectionRisks" class="hidden">
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-rose-400 mb-2 flex items-center">
+                        <i class="fa-solid fa-triangle-exclamation mr-2"></i> Risks & Impact Analysis
+                    </h4>
+                    <ul id="listRisks" class="space-y-2 text-sm text-gray-300"></ul>
+                </div>
+
+                <!-- Human Approval Gate (Change Review) -->
+                <div id="sectionApprovalGate" class="hidden bg-slate-900/80 rounded-xl p-5 border border-amber-500/30">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-shield-cat text-amber-400 text-lg"></i>
+                            <span class="text-sm font-bold text-amber-300">Human Approval Safety Guardrail</span>
+                        </div>
+                        <span id="proposalStatusBadge" class="text-xs px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono">PENDING HUMAN DECISION</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-4">CloudPilot evaluates risk and presents proposals for explicit authorization without autonomous execution.</p>
+                    
+                    <div id="actionButtons" class="flex space-x-4">
+                        <button onclick="sendDecision('approve')" class="flex-1 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-check"></i>
+                            <span>Approve Proposal</span>
+                        </button>
+                        <button onclick="sendDecision('reject')" class="flex-1 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-xmark"></i>
+                            <span>Reject Proposal</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Next Steps -->
+                <div id="sectionNextSteps" class="hidden">
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-sky-400 mb-2 flex items-center">
+                        <i class="fa-solid fa-list-check mr-2"></i> Next Steps & Action Items
+                    </h4>
+                    <ul id="listNextSteps" class="space-y-2 text-sm text-gray-300"></ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_ENDPOINT = "https://l4jxfpbef1.execute-api.us-east-1.amazonaws.com/prod";
+        let currentMode = "architecture";
+        let currentProposal = null;
+
+        function setMode(mode) {
+            currentMode = mode;
+            ['architecture', 'troubleshooter', 'change_review'].forEach(m => {
+                const btn = document.getElementById(`btn-${m}`);
+                if (m === mode) {
+                    btn.className = "w-full text-left p-3.5 rounded-xl border transition flex items-center justify-between bg-orange-500/10 border-orange-500/40 text-orange-300";
+                } else {
+                    btn.className = "w-full text-left p-3.5 rounded-xl border border-gray-800 text-gray-400 hover:border-gray-700 hover:bg-slate-800/50 transition flex items-center justify-between";
+                }
+            });
+        }
+
+        function applyPrompt(promptText, mode) {
+            document.getElementById('userPrompt').value = promptText;
+            setMode(mode);
+        }
+
+        async function submitQuery() {
+            const prompt = document.getElementById('userPrompt').value.trim();
+            if (!prompt) return alert("Please enter a request prompt.");
+
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('outputCard').classList.add('hidden');
+
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt, mode: currentMode })
+                });
+
+                const data = await response.json();
+                renderResponse(data);
+            } catch (err) {
+                alert("Error connecting to live AWS endpoint: " + err.message);
+            } finally {
+                document.getElementById('loadingState').classList.add('hidden');
+            }
+        }
+
+        function renderResponse(data) {
+            currentProposal = data;
+            document.getElementById('outputCard').classList.remove('hidden');
+            document.getElementById('outputSummary').innerText = data.summary || "No summary provided.";
+
+            // Mode badge
+            const badgeMode = document.getElementById('badgeMode');
+            badgeMode.innerText = (data.mode || currentMode).replace('_', ' ');
+
+            // Render List Items
+            renderList('sectionRecommendations', 'listRecommendations', data.recommendations);
+            renderList('sectionCostDrivers', 'listCostDrivers', data.cost_drivers);
+            renderList('sectionRisks', 'listRisks', data.risks);
+            renderList('sectionNextSteps', 'listNextSteps', data.next_steps);
+
+            // Approval Gate
+            const sectionApproval = document.getElementById('sectionApprovalGate');
+            if (data.mode === 'change_review') {
+                sectionApproval.classList.remove('hidden');
+                const badge = document.getElementById('proposalStatusBadge');
+                if (data.execution_status === 'approved') {
+                    badge.innerText = 'APPROVED BY HUMAN';
+                    badge.className = 'text-xs px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono';
+                } else if (data.execution_status === 'rejected') {
+                    badge.innerText = 'REJECTED BY HUMAN';
+                    badge.className = 'text-xs px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-400 font-mono';
+                } else {
+                    badge.innerText = 'PENDING HUMAN DECISION';
+                    badge.className = 'text-xs px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono';
+                }
+            } else {
+                sectionApproval.classList.add('hidden');
+            }
+        }
+
+        function renderList(sectionId, listId, items) {
+            const section = document.getElementById(sectionId);
+            const list = document.getElementById(listId);
+            list.innerHTML = '';
+            if (items && items.length > 0) {
+                section.classList.remove('hidden');
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = "flex items-start space-x-2 bg-slate-900/50 p-2.5 rounded-lg border border-gray-800/80";
+                    li.innerHTML = `<span class="text-orange-400 font-bold">•</span><span>${item}</span>`;
+                    list.appendChild(li);
+                });
+            } else {
+                section.classList.add('hidden');
+            }
+        }
+
+        async function sendDecision(decision) {
+            if (!currentProposal) return;
+            document.getElementById('loadingState').classList.remove('hidden');
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: decision, proposal: currentProposal })
+                });
+
+                const data = await response.json();
+                renderResponse(data);
+            } catch (err) {
+                alert("Decision update failed: " + err.message);
+            } finally {
+                document.getElementById('loadingState').classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
