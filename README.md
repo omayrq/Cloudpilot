@@ -7,6 +7,8 @@
 
 **CloudPilot** is an intelligent AWS deployment copilot designed for developers, DevOps engineers, and startup builders. It assists in planning cost-effective cloud architectures, diagnosing CodeBuild/CodePipeline deployment failures, and evaluating infrastructure change risks through a human-in-the-loop review prototype.
 
+![Alt Text]([URL_OR_PATH_TO_IMAGE](https://github.com/omayrq/Cloudpilot/blob/main/cloudpilot_architecture.jpg))
+
 ---
 
 ## 🌟 Core Features & Capability Modes
