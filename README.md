@@ -1,170 +1,128 @@
-# SkillBridge AI — Turn your current skills into your next career milestone
+# CloudPilot — Your AWS Cost & Deployment Copilot 🚀
 
-> **AWS Zero to Shipped Hackathon Submission**  
-> **Category:** `#social-good`  
-> **Lane:** `#community`  
-> **Focus Area:** Education & Workforce Development  
+[![AWS Bedrock](https://img.shields.io/badge/AWS-Amazon%20Bedrock-orange.svg)](https://aws.amazon.com/bedrock/)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
+[![Streamlit](https://img.shields.io/badge/UI-Streamlit-red.svg)](https://streamlit.io/)
+[![Tests PASSED](https://img.shields.io/badge/Tests-13%2F13%20PASSED-brightgreen.svg)]()
 
----
-
-## 🌐 Live Deployed Application
-
-* **Primary Global Application (CloudFront Anycast CDN):**  
-  👉 **[https://d1mkhiubsekh84.cloudfront.net](https://d1mkhiubsekh84.cloudfront.net)**
-
-* **Direct API Gateway & Serverless Backend Engine:**  
-  👉 **[https://gi3lr662bh.execute-api.us-east-1.amazonaws.com/dev](https://gi3lr662bh.execute-api.us-east-1.amazonaws.com/dev)**
+**CloudPilot** is an intelligent AWS deployment copilot designed for developers, DevOps engineers, and startup builders. It assists in planning cost-effective cloud architectures, diagnosing CodeBuild/CodePipeline deployment failures, and evaluating infrastructure change risks through mandatory human-in-the-loop approval guardrails.
 
 ---
 
-## 🚀 Problem
+## 🌟 Core Features & Capability Modes
 
-Many students, technology learners, and early-career professionals have access to an overwhelming volume of online tutorials, videos, documentation, and certifications. However, the problem is **not a lack of information**.
+### 1. 🏗️ Architecture & Cost Planner
+- Recommends serverless or containerized AWS service patterns based on user workload requirements.
+- Estimates monthly operating costs grounded in AWS `us-east-1` base pricing models (Lambda, S3, DynamoDB, EC2, NAT Gateway, CloudFront).
+- Highlights primary cost drivers, trade-offs, and optimization strategies (e.g. VPC Endpoints, Savings Plans, Spot instances).
 
-The problem is knowing:
-- *What should I learn next?*
-- *Which skills am I missing for my target role?*
-- *Which skills matter most to enterprise employers?*
-- *How can I turn theoretical learning into practical hands-on experience?*
-- *How do I organize and track my progress over time?*
+### 2. 🔍 Deployment Pipeline Troubleshooter
+- Parses raw deployment error logs from AWS CodeBuild, CodePipeline, Docker, or CloudFormation.
+- Pattern-matches diagnostic signatures (e.g., HTTP 429 Docker rate limits, HTTP 403 IAM `AccessDenied`, VPC routing timeouts).
+- Returns specific root cause analysis, evidence snippets, and actionable remediation commands.
 
-Learners frequently jump between disjointed video courses and articles without a personalized, structured roadmap tailored to their background and available hours.
-
----
-
-## 💡 Solution
-
-**SkillBridge AI** is an AI-powered personalized learning navigator and career development platform that bridges the gap between a learner's current skills and their target technology role (e.g., AWS Solutions Architect, Cloud DevOps Engineer, Serverless Engineer).
-
-Instead of giving learners another generic list of courses, SkillBridge AI:
-1. Performs a deterministic **Skill Gap Analysis** using **Amazon Bedrock**.
-2. Builds a **Personalized Weekly Roadmap** adapting to the learner's specified weekly study hours.
-3. Provides an interactive **AI Mentor** for context-aware Q&A and architecture guidance.
-4. Generates **Hands-on Architecture Challenges** with state persistence.
-5. Tracks **Real Progress** dynamically in **Amazon DynamoDB**.
+### 3. 🛡️ Change Review & Safety Guardrail (Human-in-the-Loop)
+- Evaluates proposed infrastructure modifications (e.g. instance resizes, resource deletions, scaling actions).
+- Assigns deterministic risk severity (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`).
+- **Safety Policy**: Enforces explicit human approval (`[Approve Proposal]` vs `[Reject Proposal]`) and **prevents unvetted autonomous execution against live AWS resources**.
 
 ---
 
-## ✨ Key Features
+## 📐 System Architecture
 
-- **Interactive Skill Assessment**: Multi-step onboarding collecting role, experience, current skills, destination role, and weekly learning availability.
-- **AI Skill Gap Priority Matrix**: Generates high/medium/low priority skill gaps with specific learning rationale using Amazon Bedrock.
-- **Adaptive Weekly Roadmap**: Tailors study objectives, hours, and practical exercises to the user's available time.
-- **AI Learning Mentor**: Context-aware AI tutor trained on the user's target role and active roadmap week.
-- **Hands-on Architecture Hub**: Practical cloud scenarios with interactive status toggles (`Not Started` -> `In Progress` -> `Completed`).
-- **Dynamic Dashboard & Progress Tracking**: Real-time progress bar calculated from verified task completion data stored in DynamoDB.
-- **Enterprise Cognito Authentication**: Secure sign-up, sign-in, and session management using Amazon Cognito User Pools.
-
----
-
-## 🏗️ Architecture
-
-```
-                                  SkillBridge AI Architecture
-                                  
- ┌────────────────┐         ┌─────────────────────┐         ┌────────────────────────┐
- │   User / Web   │ ──────> │  Amazon CloudFront  │ ──────> │ Amazon Cognito User    │
- │   Dashboard    │ <────── │  / AWS Amplify      │         │ Pool (Authentication)  │
- └───────┬────────┘         └─────────────────────┘         └────────────────────────┘
-         │
-         │ REST API (JWT Authenticated)
-         ▼
- ┌───────────────────────────────────────────────────────────────────────────────────┐
- │                            Amazon API Gateway (REST API)                          │
- └─────────────────────────────────────────────────┬─────────────────────────────────┘
-                                                   │
-                                                   ▼
- ┌───────────────────────────────────────────────────────────────────────────────────┐
- │                             AWS Lambda (Node.js 20)                               │
- ├──────────────────────────────┬─────────────────────────────┬──────────────────────┤
- │   Skill Gap & Roadmap Engine │      AI Mentor Engine       │   Progress & State   │
- └──────────────┬───────────────┴──────────────┬──────────────┴──────────┬───────────┘
-                │                              │                         │
-                ▼                              ▼                         ▼
- ┌──────────────────────────────┐ ┌──────────────────────────┐ ┌────────────────────┐
- │  Amazon Bedrock (Nova/Llama) │ │  Amazon S3 Knowledge Base│ │  Amazon DynamoDB   │
- │  JSON Structured Skill Gap   │ │  (Curated AWS Specs/RAG) │ │  Users, Roadmaps,  │
- │  & Custom Challenge Generator│ │                          │ │  Progress & State  │
- └──────────────────────────────┘ └──────────────────────────┘ └────────────────────┘
-                                               │
-                                               ▼
-                                  ┌──────────────────────────┐
-                                  │    Amazon CloudWatch     │
-                                  │    Logs, Metrics & Alarms│
-                                  └──────────────────────────┘
+```mermaid
+flowchart TD
+    User["👨‍💻 Developer / User"] -->|Interactive Streamlit UI| App["Streamlit Web App (app.py)"]
+    User -->|HTTPS API Request| APIGW["Amazon API Gateway (/prod)"]
+    
+    APIGW -->|Lambda Proxy| Lambda["AWS Lambda Backend (lambda_function.py)"]
+    App -->|Inference Query| Bedrock["Amazon Bedrock (amazon.nova-lite-v1:0 / Llama-3)"]
+    
+    subgraph Core Agent Engine
+        Bedrock --> Agent["CloudPilot Agent (agent.py)"]
+        Agent --> Schema["Contract Validator (schemas.py)"]
+        Agent --> Safety["Safety Policy Engine (safety.py)"]
+        Agent --> Tools["Cost & Diagnostics Tools (tools.py)"]
+    end
+    
+    Safety -->|Human Approval Required| ActionCard["Action Card (Approve / Reject)"]
 ```
 
 ---
 
-## 🛠️ AWS Services Used
+## 📁 Repository Structure
 
-1. **Amazon Bedrock**: Powering AI Skill Gap analysis, personalized roadmap generation, and context-aware AI Mentoring using foundation models (`amazon.nova-lite-v1:0` / `amazon.nova-pro-v1:0`).
-2. **Amazon Cognito**: Managing user authentication, registration, password policies, and JWT token issuance.
-3. **Amazon API Gateway**: Regional REST API gateway routing authenticated endpoints with CORS enforcement.
-4. **AWS Lambda**: Serverless compute runtime handling business logic, Bedrock invocations, and database persistence.
-5. **Amazon DynamoDB**: Multi-AZ NoSQL database storing user profiles, assessments, roadmaps, and progress state.
-6. **Amazon CloudFront**: Global Anycast Edge CDN providing TLS 1.3 termination, caching, and low-latency global distribution.
-7. **Amazon S3**: Storing deployment artifacts, static UI assets, and knowledge base reference material.
-8. **Amazon CloudWatch**: Centralized structured logging, operational metrics, and error alarm tracking.
-
----
-
-## 🤖 How the Coding Agent Helped
-
-The application was designed, provisioned, tested, and deployed end-to-end using the **Antigravity AI Agent**:
-- **Automated Control Plane**: Authored modular PowerShell scripts (`01-deploy-cognito.ps1` through `05-ship-gate-verification.ps1`) to provision AWS resources deterministically without manual console clicks.
-- **Robust Schema Validation**: Engineered fail-safe parsers for Amazon Bedrock JSON outputs to guarantee 100% UI stability even if AI responses throttle.
-- **Multi-Tier Quality Assurance**: Authored Jest unit tests, API contract tests, and security header tests.
-- **Automated Ship-Gate Protocol**: Executed 6-step verification protocols validating live AWS endpoints.
-
----
-
-## 🔒 Security Best Practices
-
-- **Cognito User Pool Isolation**: User state is linked strictly to Cognito sub-claims.
-- **IAM Least Privilege**: Lambda execution roles are scoped strictly to required Bedrock, DynamoDB, and CloudWatch operations.
-- **Zero Hardcoded Secrets**: All AWS calls use IAM execution roles and environment configuration.
-- **HTTP Security Headers**: Enforces `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Strict-Transport-Security`, and CORS policy.
+```
+.
+├── app.py                      # Interactive Streamlit UI web application
+├── agent.py                    # Amazon Bedrock Converse API integration & routing logic
+├── tools.py                    # Architecture planner, cost estimator & log troubleshooter
+├── safety.py                   # Risk evaluation engine & human approval validator
+├── schemas.py                  # Structured response contract schema & formatter
+├── prompts.py                  # CloudPilot system prompt & persona definition
+├── requirements.txt            # Python dependencies
+├── .env.example                # Template for environment configuration
+├── deployment/
+│   ├── lambda_function.py      # AWS Lambda entry handler for REST API integration
+│   └── deploy.ps1              # Automated PowerShell zero-secret deployment script
+└── tests/
+    ├── test_agent.py           # Unit tests for Bedrock agent routing
+    ├── test_tools.py           # Unit tests for architecture & troubleshooting tools
+    ├── test_safety.py          # Unit tests for human-in-the-loop safety guardrails
+    └── test_lambda.py          # Unit tests for AWS Lambda handler
+```
 
 ---
 
-## ⚡ Local Development
+## 🚀 Quickstart & Local Setup
 
+### 1. Prerequisites
+- Python 3.10+
+- AWS CLI configured (`aws configure`) with access to Amazon Bedrock (`bedrock:InvokeModel`)
+
+### 2. Installation
 ```bash
-# 1. Clone repository
-git clone https://github.com/user/skillbridge-ai.git
-cd skillbridge-ai
+git clone https://github.com/omayrq/Cloudpilot.git
+cd Cloudpilot
 
-# 2. Install dependencies
-npm install
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\Activate.ps1
 
-# 3. Run unit & contract test suite
-node node_modules/jest/bin/jest.js --runInBand
+# Install requirements
+pip install -r requirements.txt
+```
 
-# 4. Start local web server
-npm start
-# Open http://localhost:8080 in your browser
+### 3. Environment Setup
+Copy `.env.example` to `.env` and fill in your AWS region:
+```env
+AWS_DEFAULT_REGION=us-east-1
+BEDROCK_MODEL_ID=amazon.nova-lite-v1:0
+```
+
+### 4. Run Pytest Test Suite
+```bash
+$env:PYTHONPATH="."
+python -m pytest tests
+```
+
+### 5. Launch Local Web App
+```bash
+streamlit run app.py
 ```
 
 ---
 
-## 🚀 AWS Infrastructure Deployment
+## 🔒 Security & Secret Management Policy
 
-```powershell
-# Deploy all AWS resources sequentially via AWS CLI control plane
-powershell -ExecutionPolicy Bypass -File scripts/aws-cli/01-deploy-cognito.ps1
-powershell -ExecutionPolicy Bypass -File scripts/aws-cli/02-deploy-dynamodb.ps1
-powershell -ExecutionPolicy Bypass -File scripts/aws-cli/03-deploy-apprunner-api.ps1
-powershell -ExecutionPolicy Bypass -File scripts/aws-cli/04-deploy-cloudfront-ui.ps1
-
-# Run automated Ship-Gate verification test
-powershell -ExecutionPolicy Bypass -File scripts/aws-cli/05-ship-gate-verification.ps1
-```
+- **Zero Hardcoded Credentials**: No AWS Access Key IDs or Secret Keys are committed to source control.
+- Credentials are strictly resolved at runtime via environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`) or IAM Execution Roles.
+- `.gitignore` excludes `.env`, temporary archives, and build artifacts.
 
 ---
 
-## 🏆 Hackathon Category & Lane
+## 🏅 AWS Zero to Shipped Hackathon Alignment
 
-- **Category:** `#social-good`
-- **Lane:** `#community`
-- **Focus:** Education & Workforce Development
+1. **Live AWS Connection**: Connects to Amazon Bedrock Converse API and deploys via AWS Lambda & API Gateway.
+2. **Cost Optimization**: Embedded pricing engine helps developers prevent unexpected AWS charges.
+3. **Safety First**: Implements guardrail controls preventing AI agents from executing unverified cloud mutations.

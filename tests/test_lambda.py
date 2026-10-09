@@ -1,5 +1,5 @@
 """
-Tests for AWS Lambda deployment handler in cloudpilot/deployment/lambda_function.py
+Tests for AWS Lambda deployment handler in deployment/lambda_function.py
 """
 
 import sys
