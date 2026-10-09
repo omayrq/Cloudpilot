@@ -247,13 +247,13 @@
         function renderResponse(data) {
             currentProposal = data;
             document.getElementById('outputCard').classList.remove('hidden');
-            document.getElementById('outputSummary').innerText = data.summary || "No summary provided.";
+            document.getElementById('outputSummary').textContent = data.summary || "No summary provided.";
 
             // Mode badge
             const badgeMode = document.getElementById('badgeMode');
-            badgeMode.innerText = (data.mode || currentMode).replace('_', ' ');
+            badgeMode.textContent = (data.mode || currentMode).replace('_', ' ');
 
-            // Render List Items
+            // Render List Items safely
             renderList('sectionRecommendations', 'listRecommendations', data.recommendations);
             renderList('sectionCostDrivers', 'listCostDrivers', data.cost_drivers);
             renderList('sectionRisks', 'listRisks', data.risks);
@@ -265,13 +265,13 @@
                 sectionApproval.classList.remove('hidden');
                 const badge = document.getElementById('proposalStatusBadge');
                 if (data.execution_status === 'approved') {
-                    badge.innerText = 'APPROVED BY HUMAN';
+                    badge.textContent = 'APPROVAL DECISION RECORDED';
                     badge.className = 'text-xs px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono';
                 } else if (data.execution_status === 'rejected') {
-                    badge.innerText = 'REJECTED BY HUMAN';
+                    badge.textContent = 'REJECTION DECISION RECORDED';
                     badge.className = 'text-xs px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-400 font-mono';
                 } else {
-                    badge.innerText = 'PENDING HUMAN DECISION';
+                    badge.textContent = 'PENDING HUMAN DECISION';
                     badge.className = 'text-xs px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono';
                 }
             } else {
@@ -282,13 +282,24 @@
         function renderList(sectionId, listId, items) {
             const section = document.getElementById(sectionId);
             const list = document.getElementById(listId);
-            list.innerHTML = '';
-            if (items && items.length > 0) {
+
+            list.replaceChildren();
+
+            if (Array.isArray(items) && items.length > 0) {
                 section.classList.remove('hidden');
-                items.forEach(item => {
+
+                items.forEach((item) => {
                     const li = document.createElement('li');
-                    li.className = "flex items-start space-x-2 bg-slate-900/50 p-2.5 rounded-lg border border-gray-800/80";
-                    li.innerHTML = `<span class="text-orange-400 font-bold">•</span><span>${item}</span>`;
+                    li.className = 'flex items-start space-x-2 bg-slate-900/50 p-2.5 rounded-lg border border-gray-800/80';
+
+                    const bullet = document.createElement('span');
+                    bullet.className = 'text-orange-400 font-bold';
+                    bullet.textContent = '•';
+
+                    const content = document.createElement('span');
+                    content.textContent = String(item);
+
+                    li.append(bullet, content);
                     list.appendChild(li);
                 });
             } else {

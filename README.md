@@ -33,26 +33,21 @@
 
 ```mermaid
 flowchart TD
-    subgraph Deployed Public Production Path
-        User["👨‍💻 Developer / Web Browser"] -->|HTTP Static Web Frontend| S3["Amazon S3 Website Host (cloudpilot-app-528582359305)"]
-        User -->|HTTPS API Query| APIGW["Amazon API Gateway (/prod)"]
-        APIGW -->|Lambda Proxy| Lambda["AWS Lambda Backend (CloudPilotBackendLambda)"]
-        Lambda -->|Converse API| Bedrock["Amazon Bedrock (amazon.nova-lite-v1:0)"]
-    end
-
-    subgraph Local Development Path
-        DevUser["👨‍💻 Developer (Local)"] -->|Streamlit App| LocalApp["Streamlit Frontend (app.py)"]
-        LocalApp -->|Boto3 SDK| Bedrock
-    end
-
-    subgraph Core Agent Engine
-        Bedrock --> Agent["Routing Agent (agent.py)"]
-        Agent --> Schema["Contract Validator (schemas.py)"]
-        Agent --> Safety["Safety Policy Engine (safety.py)"]
-        Agent --> Tools["Cost & Diagnostics Tools (tools.py)"]
-    end
+    User["👨‍💻 Developer / Browser"] -->|HTTP Static Frontend| S3["Amazon S3 Host (cloudpilot-app-528582359305)"]
+    User -->|HTTPS API Request| APIGW["Amazon API Gateway (/prod)"]
+    APIGW -->|Lambda Proxy| Lambda["AWS Lambda Backend (CloudPilotBackendLambda)"]
     
-    Safety -->|Review Decision Gate| ActionCard["Action Card (Approve / Reject)"]
+    Lambda --> Route["Routing Engine (agent.py)"]
+    
+    Route -->|Troubleshooting Query| Troubleshoot["Pipeline Diagnostics Tool (troubleshoot_pipeline)"]
+    Route -->|Change Review Query| ChangeReview["Change Review Prototype (create_change_proposal)"]
+    Route -->|Architecture & Cost Query| Bedrock["Amazon Bedrock Converse API (amazon.nova-lite-v1:0)"]
+    
+    Bedrock --> Validator["Contract Schema Validator (schemas.py)"]
+    
+    Troubleshoot --> Response["Validated Response to Browser"]
+    ChangeReview --> Response
+    Validator --> Response
 ```
 
 ---
