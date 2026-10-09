@@ -27,17 +27,17 @@ def create_change_proposal(
     cost_drivers: List[str] = []
     recommendations: List[str] = []
 
-    # Risk evaluation policy rules (preliminary rule-based indicator)
+    # Risk evaluation policy rules (preliminary rule-based indicator, not a security guarantee)
     if any(k in desc_lower for k in CRITICAL_RISK_KEYWORDS):
         risk_level = "CRITICAL"
         risks.append("CRITICAL: Destructive action resulting in permanent data loss or service unavailability!")
         risks.append("Action cannot be easily undone without active backups or Point-In-Time recovery.")
     elif any(k in desc_lower for k in HIGH_RISK_KEYWORDS):
         risk_level = "HIGH"
-        risks.append("HIGH: Potential service disruption, state change, or instance downtime window.")
+        risks.append("HIGH: Potential service disruption or state change.")
         if "resize" in desc_lower or "scale up" in desc_lower:
             cost_drivers.append("Financial Impact: Increase in hourly compute or database charges.")
-            risks.append("Note: Instance resizes may require restart/downtime depending on instance type and configuration.")
+            risks.append("Note: Impact of resize operations depends on the specific service, instance type, and configuration.")
     else:
         risk_level = "MEDIUM"
         risks.append("MEDIUM: Standard operational configuration update.")
@@ -54,7 +54,7 @@ def create_change_proposal(
         "cost_drivers": cost_drivers,
         "assumptions": [
             f"Proposal ID: {proposal_id}",
-            f"Risk Rating: {risk_level} (Preliminary rule-based indicator)",
+            f"Risk Rating: {risk_level} (Preliminary rule-based indicator, not a security guarantee)",
             "Reversibility: Dependent on backup/snapshot strategy",
             "Governance Gate: Human-in-the-loop review prototype (records decision without live AWS execution)"
         ],
@@ -82,10 +82,10 @@ def validate_approval(proposal: Dict[str, Any], user_decision: str) -> Dict[str,
 
     updated_next_steps = []
     if status == "approved":
-        updated_next_steps.append("Proposal marked as APPROVED in review prototype.")
+        updated_next_steps.append("Approval decision recorded by the prototype.")
         updated_next_steps.append("Pass proposal parameters to authorized CI/CD pipeline or IAM reviewer for execution.")
     else:
-        updated_next_steps.append("Proposal marked as REJECTED in review prototype. No infrastructure action taken.")
+        updated_next_steps.append("Rejection decision recorded by the prototype. No infrastructure action taken.")
 
     raw = {
         "mode": "change_review",

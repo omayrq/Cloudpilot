@@ -10,20 +10,20 @@
 
 ## 1. What Your Agent Does
 
-**CloudPilot** is an intelligent, specialized AI copilot designed for developers, DevOps engineers, and startup builders working on Amazon Web Services (AWS). Building and scaling cloud applications often introduces two common pain points: unexpected infrastructure cost overruns and cryptic deployment pipeline errors (such as Docker Hub HTTP 429 rate limits, IAM `AccessDenied` HTTP 403 errors, or VPC network timeouts).
+**CloudPilot** is an intelligent, specialized AI copilot designed for developers, DevOps engineers, and startup builders working on Amazon Web Services (AWS). Building and scaling cloud applications often introduces two common pain points: unexpected infrastructure cost overruns and cryptic deployment pipeline errors (such as Docker Hub HTTP 429 rate limits, IAM AccessDenied HTTP 403 errors, or VPC network timeouts).
 
 CloudPilot addresses these challenges by combining architectural pattern recommendations, illustrative cost breakdowns, and log diagnostics into a unified assistant.
 
 ### Core Capabilities:
-- **Architecture & Cost Planner**: Analyzes application workload descriptions (e.g., "Build a serverless REST API with DynamoDB") and recommends serverless or containerized AWS service patterns. It generates **rough illustrative cost estimates based on predefined `us-east-1` baseline pricing assumptions** and highlights key financial trade-offs (e.g., NAT Gateway hourly baseline charges vs. VPC Gateway Endpoints).
+- **Architecture & Cost Planner**: Analyzes application workload descriptions (e.g., "Build a serverless REST API with DynamoDB") and recommends serverless or containerized AWS service patterns. It generates a **rough illustrative cost estimate based on predefined us-east-1 baseline pricing assumptions. This is not a live AWS quote, and actual charges may vary.**
 - **Deployment Pipeline Troubleshooter**: Parses raw deployment logs from AWS CodeBuild, CodePipeline, CloudFormation, or Docker buildspec files. It pattern-matches diagnostic signatures, identifies likely root causes, and recommends step-by-step verification commands (e.g., switching base container images to Amazon ECR Public Gallery or inspecting IAM policy simulators).
-- **Human-in-the-Loop Review Prototype**: Evaluates proposed infrastructure updates (e.g., instance resizes, scaling actions, or resource deletions) and assigns a **preliminary rule-based risk rating** (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`). Most importantly, CloudPilot operates as a governance prototype: it logs reviewer approval decisions (`[Approve Proposal]` or `[Reject Proposal]`) **without executing live modifications on AWS or making unauthorized identity claims**.
+- **Human-in-the-Loop Review Prototype**: Evaluates proposed infrastructure updates (e.g., instance resizes, scaling actions, or resource deletions) and assigns a **preliminary rule-based risk indicator (not a security guarantee)**. Most importantly, CloudPilot operates as a governance prototype: it logs review decisions (`[Approve Proposal]` or `[Reject Proposal]`) **without executing live modifications on AWS or making unauthorized identity claims**.
 
 ---
 
 ## 2. How You Built It
 
-CloudPilot is structured around a serverless, zero-hardcoded-secret architecture. The repository includes two complementary interfaces: a **Streamlit application (`app.py`) for rich local development**, and a **lightweight static web UI (`index.html`) deployed on Amazon S3** for public web access.
+CloudPilot is structured around a modular Python and AWS architecture. The repository includes two complementary interfaces: a **Streamlit application (`app.py`) for rich local development**, and a **lightweight static web UI (`index.html`) deployed on Amazon S3** for public web access.
 
 ### AWS Services & Architecture Breakdown:
 
@@ -61,8 +61,8 @@ flowchart TD
 
 ### Key Decisions & Challenges Overcome:
 - **Illustrative Pricing Grounding**: Cost estimates are presented as illustrative baseline estimates based on predefined `us-east-1` pricing models rather than live AWS Pricing API quotes. The agent explicitly displays baseline assumptions and prompts users to verify final rates on official AWS pricing pages.
-- **Rule-Based Risk Scoring**: Risk ratings serve as preliminary indicators rather than security guarantees. For example, instance resize impacts vary significantly based on workload configuration (e.g., standard EC2 restarts vs. Aurora Serverless dynamic scaling). The system prompts users to verify service-specific backup, snapshot, and rollback policies.
-- **Zero-Secret IAM Policy**: No AWS access keys are stored in source control or deployment scripts. Credentials and authorization are managed dynamically at runtime via IAM execution roles.
+- **Rule-Based Risk Scoring**: Risk ratings serve as preliminary indicators rather than security guarantees. For example, impact of resize operations depends on the specific service, instance type, and configuration (e.g. standard EC2 restarts vs. Aurora Serverless dynamic scaling). The system prompts users to verify service-specific backup, snapshot, and rollback policies.
+- **Credential Security Policy**: No hard-coded AWS credentials are committed to the repository; runtime credentials should be managed securely using IAM roles or another approved credential mechanism.
 
 ---
 
@@ -72,12 +72,10 @@ The **one key thing** we prioritized to make CloudPilot enjoyable to use is **Ze
 
 Many AI assistants operate as black boxes: developers worry that an autonomous agent might make unvetted changes or output misleading numbers.
 
-To address this, we designed **Interactive Review Action Cards**:
+To address this, **the interface is designed to improve user confidence by making cost assumptions, risks, and review decisions visible**:
 1. **Clear Visual Risk Indicators**: Proposed actions display preliminary risk badges (`HIGH` or `CRITICAL`) alongside explicit downtime and backup recommendations.
 2. **Instant Quick-Start Prompts**: First-time users can click pre-configured prompts ("Build a serverless REST API", "Fix Docker 429 error", "Resize EC2 instance") for immediate interactive feedback.
-3. **Transparent Decision Audit**: Users test human-in-the-loop review by clicking **[Approve Proposal]** or **[Reject Proposal]**. The status updates to `APPROVED` or `REJECTED` in the review prototype, demonstrating governance controls without unvetted cloud mutation.
-
-**How We Know It Worked**: User feedback confirmed that combining transparent pricing assumptions with explicit approval gates increased user confidence when exploring cloud infrastructure proposals.
+3. **Transparent Decision Audit**: Users test human-in-the-loop review by clicking **[Approve Proposal]** or **[Reject Proposal]**. The output records: *"Approval decision recorded by the prototype,"* demonstrating governance controls without unvetted cloud mutation.
 
 ---
 

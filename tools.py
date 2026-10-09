@@ -48,16 +48,16 @@ def plan_architecture(
         s3_cost = 0.50 # baseline storage
         total_est = lambda_cost + dynamo_cost + s3_cost
 
-        cost_drivers.append(f"API Request Volume: {expected_requests_per_month:,} req/month (Rough illustrative estimate: ~${total_est:.2f}/mo)")
+        cost_drivers.append(f"API Request Volume: {expected_requests_per_month:,} req/month (~${total_est:.2f}/mo baseline estimate)")
         cost_drivers.append("Data Transfer Out (CloudFront CDN): Free tier covers up to 1 TB/month.")
-        assumptions.append(f"Illustrative cost estimate based on predefined us-east-1 baseline rates (not a live AWS quote).")
+        assumptions.append("Rough illustrative cost estimate based on predefined us-east-1 baseline pricing assumptions. This is not a live AWS quote, and actual charges may vary.")
         assumptions.append(f"Assumed region: {region}, operating time: {operating_hours_per_month}h/month, light payload (<128 KB).")
     else:
         recommendations.append("Deploy containerized microservices on AWS App Runner or ECS Fargate in Multi-AZ VPC.")
         recommendations.append("Use Amazon RDS PostgreSQL (db.t4g.micro) for relational database requirements.")
         cost_drivers.append("NAT Gateway hourly fee (~$32.85/mo baseline) + data processing fees ($0.045/GB).")
         cost_drivers.append("RDS Database Instance & Provisioned Storage (EBS gp3).")
-        assumptions.append("Illustrative estimate based on predefined us-east-1 baseline rates. Actual costs vary by instance type and data volume.")
+        assumptions.append("Rough illustrative cost estimate based on predefined us-east-1 baseline pricing assumptions. This is not a live AWS quote, and actual charges may vary.")
         assumptions.append("Requires VPC setup with Public and Private Subnets across 2 Availability Zones.")
         risks.append("NAT Gateway and provisioned RDS run 24/7 regardless of traffic volume.")
 
