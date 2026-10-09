@@ -19,7 +19,8 @@ Write-Host "==========================================" -ForegroundColor Cyan
 # 1. Verify AWS CLI
 $caller = aws sts get-caller-identity --output json | ConvertFrom-Json
 if ($caller -and $caller.Account) {
-    Write-Host "[OK] Authenticated as AWS Account: $($caller.Account) ($($caller.Arn))" -ForegroundColor Green
+    $accountId = $caller.Account
+    Write-Host "[OK] Authenticated as AWS Account: $accountId ($($caller.Arn))" -ForegroundColor Green
 } else {
     Write-Error "AWS CLI authentication failed. Please configure AWS credentials or environment variables."
     exit 1
@@ -87,6 +88,7 @@ if ($existingRole -and $existingRole.Role) {
 # 4. Deploy/Update Lambda Function
 Write-Host "[*] Deploying AWS Lambda function ($FunctionName)..." -ForegroundColor Yellow
 
+$lambdaArn = $null
 $existingLambda = $null
 try {
     $existingLambda = aws lambda get-function --function-name $FunctionName --region $Region --output json 2>$null | ConvertFrom-Json
@@ -96,15 +98,17 @@ if ($existingLambda -and $existingLambda.Configuration) {
     Write-Host "[*] Updating existing Lambda function code..." -ForegroundColor Yellow
     aws lambda update-function-code --function-name $FunctionName --zip-file "fileb://$zipPath" --region $Region | Out-Null
     aws lambda update-function-configuration --function-name $FunctionName --handler "lambda_function.lambda_handler" --region $Region | Out-Null
+    $lambdaArn = $existingLambda.Configuration.FunctionArn
     Write-Host "[OK] Lambda function code updated successfully!" -ForegroundColor Green
 } else {
     Write-Host "[*] Creating new Lambda function..." -ForegroundColor Yellow
-    aws lambda create-function --function-name $FunctionName --runtime "python3.11" --role $roleArn --handler "lambda_function.lambda_handler" --zip-file "fileb://$zipPath" --timeout 30 --memory-size 256 --region $Region | Out-Null
+    $newLambda = aws lambda create-function --function-name $FunctionName --runtime "python3.11" --role $roleArn --handler "lambda_function.lambda_handler" --zip-file "fileb://$zipPath" --timeout 30 --memory-size 256 --region $Region --output json | ConvertFrom-Json
+    $lambdaArn = $newLambda.FunctionArn
     Write-Host "[OK] Lambda function created successfully!" -ForegroundColor Green
 }
 
-# 5. Provision API Gateway HTTP Endpoint
-Write-Host "[*] Provisioning API Gateway REST API..." -ForegroundColor Yellow
+# 5. Provision API Gateway HTTP Endpoint with Proxy Routing
+Write-Host "[*] Provisioning API Gateway REST API with proxy integration..." -ForegroundColor Yellow
 
 $apiName = "CloudPilotAPI"
 $apiId = $null
@@ -121,7 +125,40 @@ if ($existingApi) {
     Write-Host "[OK] Created new API Gateway ID: $apiId" -ForegroundColor Green
 }
 
-# Deploy stage
+# Get root resource ID
+$resources = aws apigateway get-resources --rest-api-id $apiId --region $Region --output json | ConvertFrom-Json
+$rootResourceId = ($resources.items | Where-Object { $_.path -eq "/" }).id
+
+# 5a. Configure Root Resource (/) ANY method
+try {
+    aws apigateway put-method --rest-api-id $apiId --resource-id $rootResourceId --http-method ANY --authorization-type NONE --region $Region 2>$null | Out-Null
+    
+    $lambdaUri = "arn:aws:apigateway:${Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${Region}:${accountId}:function:${FunctionName}/invocations"
+    aws apigateway put-integration --rest-api-id $apiId --resource-id $rootResourceId --http-method ANY --type AWS_PROXY --integration-http-method POST --uri $lambdaUri --region $Region 2>$null | Out-Null
+} catch {}
+
+# 5b. Configure Proxy Resource ({proxy+}) for subpaths (/health, etc.)
+$proxyResource = $resources.items | Where-Object { $_.pathPart -eq "{proxy+}" }
+$proxyResourceId = $null
+
+if ($proxyResource) {
+    $proxyResourceId = $proxyResource.id
+} else {
+    $newResource = aws apigateway create-resource --rest-api-id $apiId --parent-id $rootResourceId --path-part "{proxy+}" --region $Region --output json | ConvertFrom-Json
+    $proxyResourceId = $newResource.id
+}
+
+try {
+    aws apigateway put-method --rest-api-id $apiId --resource-id $proxyResourceId --http-method ANY --authorization-type NONE --region $Region 2>$null | Out-Null
+    
+    $lambdaUri = "arn:aws:apigateway:${Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${Region}:${accountId}:function:${FunctionName}/invocations"
+    aws apigateway put-integration --rest-api-id $apiId --resource-id $proxyResourceId --http-method ANY --type AWS_PROXY --integration-http-method POST --uri $lambdaUri --region $Region 2>$null | Out-Null
+} catch {}
+
+# 5c. Grant API Gateway permission to invoke Lambda
+aws lambda add-permission --function-name $FunctionName --statement-id "apigateway-any-$apiId" --action "lambda:InvokeFunction" --principal "apigateway.amazonaws.com" --source-arn "arn:aws:execute-api:${Region}:${accountId}:${apiId}/*/*" --region $Region 2>$null | Out-Null
+
+# 5d. Create API Gateway Deployment Stage
 Write-Host "[*] Deploying API Gateway /prod stage..." -ForegroundColor Yellow
 aws apigateway create-deployment --rest-api-id $apiId --stage-name "prod" --region $Region 2>$null | Out-Null
 
