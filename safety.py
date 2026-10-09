@@ -27,23 +27,23 @@ def create_change_proposal(
     cost_drivers: List[str] = []
     recommendations: List[str] = []
 
-    # Risk evaluation policy rules
+    # Risk evaluation policy rules (preliminary rule-based indicator)
     if any(k in desc_lower for k in CRITICAL_RISK_KEYWORDS):
         risk_level = "CRITICAL"
         risks.append("CRITICAL: Destructive action resulting in permanent data loss or service unavailability!")
         risks.append("Action cannot be easily undone without active backups or Point-In-Time recovery.")
     elif any(k in desc_lower for k in HIGH_RISK_KEYWORDS):
         risk_level = "HIGH"
-        risks.append("HIGH: Potential service disruption, instance downtime, or network state change.")
+        risks.append("HIGH: Potential service disruption, state change, or instance downtime window.")
         if "resize" in desc_lower or "scale up" in desc_lower:
-            cost_drivers.append("Financial Impact: Significant increase in hourly compute or database charges.")
-            risks.append("Resize operations require stopping EC2/RDS instances (downtime window).")
+            cost_drivers.append("Financial Impact: Increase in hourly compute or database charges.")
+            risks.append("Note: Instance resizes may require restart/downtime depending on instance type and configuration.")
     else:
         risk_level = "MEDIUM"
         risks.append("MEDIUM: Standard operational configuration update.")
 
-    recommendations.append(f"Review target resource parameters ({target_resource}).")
-    recommendations.append("Ensure automated snapshot or backup exists prior to approving.")
+    recommendations.append(f"Verify target resource parameters ({target_resource}) and backup/snapshot policies.")
+    recommendations.append("Review availability requirements and rollback plans before approving.")
 
     summary = f"Change Proposal [{proposal_id}]: {action_description} on {target_resource} (Risk: {risk_level})"
 
@@ -54,12 +54,12 @@ def create_change_proposal(
         "cost_drivers": cost_drivers,
         "assumptions": [
             f"Proposal ID: {proposal_id}",
-            f"Risk Level: {risk_level}",
-            "Reversibility: Depends on snapshot/backup policy",
-            "Safety Guardrail: Requires explicit human approval"
+            f"Risk Rating: {risk_level} (Preliminary rule-based indicator)",
+            "Reversibility: Dependent on backup/snapshot strategy",
+            "Governance Gate: Human-in-the-loop review prototype (records decision without live AWS execution)"
         ],
         "risks": risks,
-        "next_steps": ["Select [Approve Proposal] or [Reject Proposal] below to record decision."],
+        "next_steps": ["Select [Approve Proposal] or [Reject Proposal] below to record review decision."],
         "execution_status": "not_executed"
     }
 
@@ -77,15 +77,15 @@ def validate_approval(proposal: Dict[str, Any], user_decision: str) -> Dict[str,
     updated_summary = f"{summary} — DECISION: {status.upper()}"
 
     updated_assumptions = list(proposal.get("assumptions", []))
-    updated_assumptions.append(f"Human Decision Recorded: {status.upper()}")
-    updated_assumptions.append("Live AWS Execution: Skipped in MVP / Controlled Gate")
+    updated_assumptions.append(f"Reviewer Decision Recorded: {status.upper()}")
+    updated_assumptions.append("Prototype Notice: Decision logged; live AWS modification requires explicit IAM authorization.")
 
     updated_next_steps = []
     if status == "approved":
-        updated_next_steps.append("Proposal approved by authorized human reviewer.")
-        updated_next_steps.append("Proceed with manual deployment or CI/CD approval pipeline.")
+        updated_next_steps.append("Proposal marked as APPROVED in review prototype.")
+        updated_next_steps.append("Pass proposal parameters to authorized CI/CD pipeline or IAM reviewer for execution.")
     else:
-        updated_next_steps.append("Proposal rejected by human reviewer. No infrastructure action taken.")
+        updated_next_steps.append("Proposal marked as REJECTED in review prototype. No infrastructure action taken.")
 
     raw = {
         "mode": "change_review",

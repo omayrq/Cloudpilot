@@ -48,19 +48,21 @@ def plan_architecture(
         s3_cost = 0.50 # baseline storage
         total_est = lambda_cost + dynamo_cost + s3_cost
 
-        cost_drivers.append(f"API Request Volume: {expected_requests_per_month:,} req/month (~${total_est:.2f}/mo)")
+        cost_drivers.append(f"API Request Volume: {expected_requests_per_month:,} req/month (Rough illustrative estimate: ~${total_est:.2f}/mo)")
         cost_drivers.append("Data Transfer Out (CloudFront CDN): Free tier covers up to 1 TB/month.")
-        assumptions.append(f"Assumed region: {region} with operating time of {operating_hours_per_month}h/month.")
-        assumptions.append(f"Assumed light payload size (<128 KB per request).")
+        assumptions.append(f"Illustrative cost estimate based on predefined us-east-1 baseline rates (not a live AWS quote).")
+        assumptions.append(f"Assumed region: {region}, operating time: {operating_hours_per_month}h/month, light payload (<128 KB).")
     else:
         recommendations.append("Deploy containerized microservices on AWS App Runner or ECS Fargate in Multi-AZ VPC.")
         recommendations.append("Use Amazon RDS PostgreSQL (db.t4g.micro) for relational database requirements.")
-        cost_drivers.append("NAT Gateway hourly fee ($32.85/mo) + processing fees ($0.045/GB).")
+        cost_drivers.append("NAT Gateway hourly fee (~$32.85/mo baseline) + data processing fees ($0.045/GB).")
         cost_drivers.append("RDS Database Instance & Provisioned Storage (EBS gp3).")
+        assumptions.append("Illustrative estimate based on predefined us-east-1 baseline rates. Actual costs vary by instance type and data volume.")
         assumptions.append("Requires VPC setup with Public and Private Subnets across 2 Availability Zones.")
         risks.append("NAT Gateway and provisioned RDS run 24/7 regardless of traffic volume.")
 
-    next_steps.append("Validate request rate projections using AWS Pricing Calculator.")
+    next_steps.append("Verify baseline rates against official AWS Pricing pages (aws.amazon.com/pricing).")
+    next_steps.append("Model workload scaling scenarios using the official AWS Pricing Calculator.")
     next_steps.append("Configure AWS Budgets to alert if monthly spending exceeds threshold.")
 
     summary = f"Architectural recommendation generated for '{app_description[:60]}...' in {region}."
