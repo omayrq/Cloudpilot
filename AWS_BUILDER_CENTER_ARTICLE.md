@@ -1,6 +1,6 @@
 # CloudPilot: Your AWS Cost & Deployment Copilot 🚀
 
-**Article Tag**: `agent`  
+**Article Tag**: `agents`  
 **Submission Date**: October 9, 2026  
 **Live Application URL**: [http://cloudpilot-app-528582359305.s3-website-us-east-1.amazonaws.com](http://cloudpilot-app-528582359305.s3-website-us-east-1.amazonaws.com)  
 **GitHub Repository**: [https://github.com/omayrq/Cloudpilot.git](https://github.com/omayrq/Cloudpilot.git)  
@@ -75,7 +75,7 @@ Many AI assistants operate as black boxes: developers worry that an autonomous a
 To address this, **the interface is designed to improve user confidence by making cost assumptions, risks, and review decisions visible**:
 1. **Clear Visual Risk Indicators**: Proposed actions display preliminary risk badges (`HIGH` or `CRITICAL`) alongside explicit downtime and backup recommendations.
 2. **Instant Quick-Start Prompts**: First-time users can click pre-configured prompts ("Build a serverless REST API", "Fix Docker 429 error", "Resize EC2 instance") for immediate interactive feedback.
-3. **Transparent Decision Audit**: Users test human-in-the-loop review by clicking **[Approve Proposal]** or **[Reject Proposal]**. The output records: *"Approval decision recorded by the prototype,"* demonstrating governance controls without unvetted cloud mutation.
+3. **Transparent Decision Audit**: Users test human-in-the-loop review by clicking **[Approve Proposal]** or **[Reject Proposal]**. The output records: *"Approval decision recorded by the prototype. No AWS infrastructure change was executed,"* demonstrating governance controls without unvetted cloud mutation.
 
 ---
 

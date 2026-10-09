@@ -37,7 +37,7 @@ def create_change_proposal(
         risks.append("HIGH: Potential service disruption or state change.")
         if "resize" in desc_lower or "scale up" in desc_lower:
             cost_drivers.append("Financial Impact: Increase in hourly compute or database charges.")
-            risks.append("Note: Impact of resize operations depends on the specific service, instance type, and configuration.")
+            risks.append("Impact of resize operations depends on the specific service, resource type, and configuration; verify downtime requirements.")
     else:
         risk_level = "MEDIUM"
         risks.append("MEDIUM: Standard operational configuration update.")
@@ -82,7 +82,7 @@ def validate_approval(proposal: Dict[str, Any], user_decision: str) -> Dict[str,
 
     updated_next_steps = []
     if status == "approved":
-        updated_next_steps.append("Approval decision recorded by the prototype.")
+        updated_next_steps.append("Approval decision recorded by the prototype. No AWS infrastructure change was executed.")
         updated_next_steps.append("Pass proposal parameters to authorized CI/CD pipeline or IAM reviewer for execution.")
     else:
         updated_next_steps.append("Rejection decision recorded by the prototype. No infrastructure action taken.")
