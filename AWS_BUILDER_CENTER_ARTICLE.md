@@ -1,6 +1,6 @@
 # CloudPilot: Your AWS Cost & Deployment Copilot 🚀
 
-**Article Tag**: `agents`  
+**Article Tag**: `#agents`  
 **Submission Date**: October 9, 2026  
 **Live Application URL**: [http://cloudpilot-app-528582359305.s3-website-us-east-1.amazonaws.com](http://cloudpilot-app-528582359305.s3-website-us-east-1.amazonaws.com)  
 **GitHub Repository**: [https://github.com/omayrq/Cloudpilot.git](https://github.com/omayrq/Cloudpilot.git)  
@@ -55,22 +55,24 @@ flowchart TD
 ```
 
 ### Key Decisions & Challenges Overcome:
-- **Illustrative Pricing Grounding**: Cost estimates are presented as illustrative baseline estimates based on predefined `us-east-1` pricing models rather than live AWS Pricing API quotes. The agent explicitly displays baseline assumptions and prompts users to verify final rates on official AWS pricing pages.
-- **Rule-Based Risk Scoring**: Risk ratings serve as preliminary indicators rather than security guarantees. For example, impact of resize operations depends on the specific service, instance type, and configuration (e.g. standard EC2 restarts vs. Aurora Serverless dynamic scaling). The system prompts users to verify service-specific backup, snapshot, and rollback policies.
+- **Illustrative Pricing Grounding**: Cost estimates calculate Lambda request fees, Lambda duration-based compute (200ms @ 512MB), DynamoDB reads, and S3 baseline storage based on predefined `us-east-1` pricing assumptions rather than live AWS Pricing API quotes. Omitted components (API Gateway fees, CloudWatch logs, dynamic data transfer) are explicitly documented.
+- **Rule-Based Risk Scoring**: Risk ratings serve as preliminary indicators rather than security guarantees. Impact of resize operations depends on the specific service, resource type, and configuration (e.g., standard EC2 restarts vs. Aurora Serverless dynamic scaling). The system prompts users to verify service-specific backup, snapshot, and rollback policies.
 - **Credential Security Policy**: No hard-coded AWS credentials are committed to the repository; runtime credentials should be managed securely using IAM roles or another approved credential mechanism.
 
 ---
 
-## 3. The Experience (Making it Enjoyable to Use)
+## 3. The Experience (The Delightful Detail)
 
-The **one key thing** we prioritized to make CloudPilot enjoyable to use is **Zero-Friction Transparency and Predictable Governance Controls**.
+The **one delightful detail** we built to make CloudPilot enjoyable to use is our **Zero-Friction Quick Prompt & Action Card Interface Design**.
 
-Many AI assistants operate as black boxes: developers worry that an autonomous agent might make unvetted changes or output misleading numbers.
+Many AI assistants operate as black boxes: developers worry that an autonomous agent might output ungrounded estimates or make unvetted infrastructure changes.
 
-To address this, **the interface is designed to improve user confidence by making cost assumptions, risks, and review decisions visible**:
-1. **Clear Visual Risk Indicators**: Proposed actions display preliminary risk badges (`HIGH` or `CRITICAL`) alongside explicit downtime and backup recommendations.
-2. **Instant Quick-Start Prompts**: First-time users can click pre-configured prompts ("Build a serverless REST API", "Fix Docker 429 error", "Resize EC2 instance") for immediate interactive feedback.
-3. **Transparent Decision Audit**: Users test human-in-the-loop review by clicking **[Approve Proposal]** or **[Reject Proposal]**. The output records: *"Approval decision recorded by the prototype. No AWS infrastructure change was executed,"* demonstrating governance controls without unvetted cloud mutation.
+To solve this, the interface provides a delightful, one-click experience:
+1. **Instant Quick-Start Prompts**: First-time users can launch the app and click pre-configured, one-click quick prompts ("Build a serverless REST API", "Fix Docker 429 error", "Resize EC2 instance") to immediately view structured cost drivers, diagnostic fixes, or risk badges without typing long prompts.
+2. **Transparent Risk Badging**: Proposed infrastructure changes display clear preliminary risk badges (`HIGH` or `CRITICAL`) alongside explicit backup recommendations and configuration notes.
+3. **Interactive Decision Feedback**: Users test governance controls by clicking **[Approve Proposal]** or **[Reject Proposal]**. The interface immediately returns: *"Approval decision recorded by the prototype. No AWS infrastructure change was executed,"* providing clear review feedback without unvetted cloud mutation.
+
+**How We Verified It Worked**: We verified the delightful detail by testing quick prompt workflows across all three capability modes, confirming sub-second response formatting, safe HTML rendering, and immediate review state updates across desktop and mobile viewports.
 
 ---
 
@@ -95,7 +97,7 @@ Executing a live health check query against the AWS API Gateway endpoint:
 }
 ```
 
-Running the Pytest suite across all agent, tools, safety, and Lambda test files:
+Running the Pytest suite across all agent, tools, safety, security, and Lambda test files:
 ```
-============================= 13 passed in 19.38s =============================
+============================= 16 passed in 23.00s =============================
 ```

@@ -41,17 +41,27 @@ def plan_architecture(
         recommendations.append("Use Amazon DynamoDB (On-Demand billing) for persistent noSQL database.")
         recommendations.append("Use Amazon S3 + Amazon CloudFront for static asset delivery & global Anycast CDN.")
 
-        # Estimate Serverless Cost
+        # Estimate Serverless Cost (Requests + Duration Compute)
         req_millions = expected_requests_per_month / 1_000_000
-        lambda_cost = req_millions * AWS_BASE_PRICING["lambda"]["per_million_req"]
+        lambda_req_cost = req_millions * AWS_BASE_PRICING["lambda"]["per_million_req"]
+        
+        # Duration compute: assume avg 200ms duration at 512MB RAM (0.1 GB-s per request)
+        avg_gb_seconds_per_req = 0.1
+        total_gb_seconds = expected_requests_per_month * avg_gb_seconds_per_req
+        lambda_duration_cost = total_gb_seconds * AWS_BASE_PRICING["lambda"]["gb_second"]
+        lambda_total = lambda_req_cost + lambda_duration_cost
+        
         dynamo_cost = req_millions * AWS_BASE_PRICING["dynamodb"]["read_per_million"]
         s3_cost = 0.50 # baseline storage
-        total_est = lambda_cost + dynamo_cost + s3_cost
+        total_est = lambda_total + dynamo_cost + s3_cost
 
         cost_drivers.append(f"API Request Volume: {expected_requests_per_month:,} req/month (~${total_est:.2f}/mo baseline estimate)")
+        cost_drivers.append(f"Lambda Compute Split: ${lambda_req_cost:.2f} request fees + ${lambda_duration_cost:.2f} duration compute ({total_gb_seconds:,.0f} GB-s).")
         cost_drivers.append("Data Transfer Out (CloudFront CDN): Free tier covers up to 1 TB/month.")
         assumptions.append("Rough illustrative cost estimate based on predefined us-east-1 baseline pricing assumptions. This is not a live AWS quote, and actual charges may vary.")
-        assumptions.append(f"Assumed region: {region}, operating time: {operating_hours_per_month}h/month, light payload (<128 KB).")
+        assumptions.append("Estimate includes: Lambda request fees, Lambda duration compute (200ms @ 512MB), DynamoDB reads, and S3 baseline storage.")
+        assumptions.append("Estimate omits: API Gateway HTTP fees ($1.00/M), CloudWatch log ingestion, and dynamic data transfer beyond free tier.")
+        assumptions.append(f"Assumed region: {region}, operating time: {operating_hours_per_month}h/month.")
     else:
         recommendations.append("Deploy containerized microservices on AWS App Runner or ECS Fargate in Multi-AZ VPC.")
         recommendations.append("Use Amazon RDS PostgreSQL (db.t4g.micro) for relational database requirements.")
